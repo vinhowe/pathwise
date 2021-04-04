@@ -1,0 +1,1 @@
+abstract class Path<N : PathNode>(var parents: MutableMap<N, N>, var costs: MutableMap<N, Double>)
