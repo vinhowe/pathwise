@@ -28,7 +28,6 @@ class MinecraftGraph(val world: World, val player: Player) : Graph<McPathNode>()
 
             neighbors.forEach {
                 val newCost = path.costs[current]!! + cost(current, it)
-                // TODO: Understand what's happening here better
                 if (it !in path.costs || newCost < path.costs[it]!!) {
                     path.costs[it] = newCost;
                     val priority = newCost + heuristic(it, end);
