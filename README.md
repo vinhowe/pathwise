@@ -1,6 +1,6 @@
-# Pathwise
+# pathwise
 
-![maze demo](./screenshots/maze-astar.png)
+<img alt="maze demo" src="./screenshots/maze-astar.png" width="300"/>
 
 WIP pathfinding library for Bukkit plugins.
 
