@@ -1,4 +1,4 @@
-# Pathwise
+# pathwise
 
 <img alt="maze demo" src="./screenshots/maze-astar.png" width="300"/>
 
