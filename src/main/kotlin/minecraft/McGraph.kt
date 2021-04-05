@@ -7,7 +7,7 @@ import org.bukkit.block.data.BlockData
 import org.bukkit.entity.Player
 import java.util.*
 
-class MinecraftGraph(val world: World, val player: Player) : Graph<McPathNode>() {
+class MinecraftGraph(private val world: World, private val player: Player) : Graph<McPathNode>() {
     fun search(start: McPathNode, end: McPathNode, heuristic: McHeuristic = McHeuristic.EUCLIDEAN): McPath? {
         val frontier: PriorityQueue<Pair<McPathNode, Double>> = PriorityQueue(compareBy { it.second })
         val path = McPath.empty()
