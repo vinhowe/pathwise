@@ -58,7 +58,7 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
             .filter {
                 it.block.isPassable
                         && it.clone().add(0.0, 1.0, 0.0).block.isPassable
-                        && !it.clone().add(1.0, -1.0, 0.0).block.isPassable
+                        && !it.clone().add(0.0, -1.0, 0.0).block.isPassable
             }
             .map { McPathNode.fromBukkitLocation(it) }
     }
