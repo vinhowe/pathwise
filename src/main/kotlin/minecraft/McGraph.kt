@@ -3,7 +3,6 @@ package minecraft
 import Graph
 import org.bukkit.Material
 import org.bukkit.World
-import org.bukkit.block.data.BlockData
 import org.bukkit.entity.Player
 import java.util.*
 
@@ -20,7 +19,7 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
         while (frontier.isNotEmpty() && iterations < 100000) {
             iterations++;
             val current = frontier.poll().first
-            player.sendBlockChange(current.toBukkitLocation(world), Material.WHITE_CONCRETE.createBlockData())
+            player.sendBlockChange(current.toBukkitLocation(), Material.WHITE_CONCRETE.createBlockData())
 
             if (current == end) {
                 break
@@ -41,7 +40,7 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
 
         var parent: McPathNode? = end
         while (true) {
-            player.sendBlockChange(parent!!.toBukkitLocation(world), Material.RED_CONCRETE.createBlockData())
+            player.sendBlockChange(parent!!.toBukkitLocation(), Material.RED_CONCRETE.createBlockData())
             parent = path.parents[parent];
 
             if (parent == null || parent == start) {

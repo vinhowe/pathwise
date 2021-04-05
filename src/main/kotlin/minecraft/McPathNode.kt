@@ -2,22 +2,96 @@ package minecraft
 
 import PathNode
 import org.bukkit.Location
+import org.bukkit.Material
+import org.bukkit.Tag
 import org.bukkit.World
+import org.bukkit.craftbukkit.v1_16_R3.CraftWorld
+import org.bukkit.craftbukkit.v1_16_R3.block.CraftBlock
 import org.bukkit.util.Vector
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-data class McPathNode(val x: Int, val y: Int, val z: Int) : PathNode() {
+data class McPathNode(val world: World, val x: Int, val y: Int, val z: Int) : PathNode() {
     // TODO: Consider whether we want to include a reference to the Minecraft world or let the consumer handle dimension
     //  changes
     companion object {
         fun fromBukkitLocation(location: Location): McPathNode {
-            return McPathNode(location.blockX, location.blockY, location.blockZ)
+            return McPathNode(location.world!!, location.blockX, location.blockY, location.blockZ)
         }
     }
 
-    operator fun plus(inc: PathNeighbor): McPathNode {
-        return McPathNode(x + inc.x, y + inc.y, z + inc.z)
+    private var _safe: Boolean? = null
+    val safe: Boolean
+        get() {
+            if (_safe == null) {
+                _safe = toBukkitLocation().block.type !in listOf(
+                    Material.LAVA,
+                    Material.MAGMA_BLOCK,
+                    Material.SWEET_BERRY_BUSH,
+                    Material.CACTUS
+                )
+            }
+            return _safe!!
+        }
+
+    private var _passable: Boolean? = null
+    val passable: Boolean
+        get() {
+            if (_passable == null) {
+                _passable = toBukkitLocation().block.isPassable
+            }
+            return _passable!!
+        }
+
+    private var _canJumpOver: Boolean? = null
+    val canJumpOver: Boolean
+        get() {
+            if (_canJumpOver == null) {
+                val block = toBukkitLocation().block
+                _canJumpOver = (block as CraftBlock).nms.getCollisionShape(
+                    (block.world as CraftWorld).handle,
+                    block.position
+                ).boundingBox.maxY <= 1.25
+            }
+            return _canJumpOver!!
+        }
+
+    private var _climbable: Boolean? = null
+    val climbable: Boolean
+        get() {
+            if (_climbable == null) {
+                val location = toBukkitLocation()
+                _climbable = Tag.CLIMBABLE.isTagged(location.block.type) || location.block.type == Material.WATER
+            }
+            return _climbable!!
+        }
+
+    private var _canFit: Boolean? = null
+    val canFit: Boolean
+        get() {
+            if (_canFit == null) {
+                val passableAndSafe = safe && (passable || climbable)
+                val up = plus(Neighbor.U)
+                _canFit = passableAndSafe && (up.passable || up.climbable)
+            }
+            return _canFit!!
+        }
+
+    private var _supported: Boolean? = null
+    val supported: Boolean
+        get() {
+            if (_supported == null) {
+                _supported = climbable || (!plus(Neighbor.D).passable && plus(Neighbor.D).safe);
+            }
+            return _supported!!
+        }
+
+    operator fun plus(inc: Triple<Int, Int, Int>): McPathNode {
+        return McPathNode(world, x + inc.first, y + inc.second, z + inc.third)
+    }
+
+    operator fun plus(inc: Neighbor): McPathNode {
+        return McPathNode(world, x + inc.x, y + inc.y, z + inc.z)
     }
 
     fun distanceTo(other: McPathNode): Double {
@@ -33,7 +107,8 @@ data class McPathNode(val x: Int, val y: Int, val z: Int) : PathNode() {
         return Vector(x, y, z)
     }
 
-    fun toBukkitLocation(world: World): Location {
+    fun toBukkitLocation(): Location {
         return Location(world, x.toDouble(), y.toDouble(), z.toDouble())
     }
+
 }
