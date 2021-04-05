@@ -10,12 +10,13 @@ Thanks to Amit Patel and his unusual knack for explaining things clearly. My wor
 
 - [ ] Implement [Incremental Phi\*](http://www.cs.cmu.edu/~maxim/files/inctheta_ijcai09.pdf)
 - [ ] Improve neighbor evaluation
-  - [ ] Fix corner cutting
+  - [x] Fix corner cutting
   - [ ] No going straight up unless flag is set on some level that allows flying--require that block below target isn't passable
-    - [ ] Except ladders, vines, water from this rule
+    - [x] Except ladders, vines, water from this rule
   - [ ] Figure out how to deal with block height and prevent pathfinding over fences etc.
-  - [ ] Prevent pathfinding through lava or over whatever other blocks hurt players (magma)
+  - [x] Prevent pathfinding through lava or over whatever other blocks hurt players (magma)
 - [ ] Improve cost function
+  - [x] Assign a high cost to falling
   - [ ] Assign a small cost for jumping up from one block to another, just because it's annoying
   - [ ] Avoid water
     - [ ] This cost could compound to account for running out of breath
