@@ -51,48 +51,128 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
         return path
     }
 
+
     override fun neighbors(node: McPathNode): List<McPathNode> {
-        // TODO: Make this context-dependent on whether the player can fly
-        return PathNeighbor.values().map { (node + it).toBukkitLocation(world) }
-            .filter {
-                it.block.isPassable
-                        && it.clone().add(0.0, 1.0, 0.0).block.isPassable
-                        && !it.clone().add(0.0, -1.0, 0.0).block.isPassable
+        val possibleNeighbors = Neighbor.values()
+            .map {
+                it.toTriple() to node + it
+            }.toMap().toMutableMap()
+
+        val open = mutableMapOf<Triple<Int, Int, Int>, McPathNode>()
+
+        // Limit diagonal movement
+        Neighbor.BASE_DIAGONALS.forEach { it ->
+            val triple = it.toTriple()
+            val diagonalNode = possibleNeighbors.remove(triple)!!
+            if (node.supported && diagonalNode.passable && it.directions.all { possibleNeighbors[it.toTriple()]!!.passable }) {
+                open += triple to diagonalNode
             }
-            .map { McPathNode.fromBukkitLocation(it) }
+        }
+
+        Neighbor.UP_DIAGONALS.forEach {
+            val triple = it.toTriple()
+            val diagonalNode = possibleNeighbors.remove(triple)!!
+            if (node.supported && diagonalNode.passable && it.directions.slice(2..2)
+                    .all { direction ->
+                        possibleNeighbors[Triple(
+                            direction.x,
+                            it.directions[0].y,
+                            direction.z
+                        )]!!.passable
+                    }
+            ) {
+                open += triple to diagonalNode
+            }
+        }
+
+        Neighbor.DOWN_DIAGONALS.zip(Neighbor.BASE_DIAGONALS).forEach {
+            val triple = it.first.toTriple()
+            val directions = it.first.directions
+            val diagonalNode = possibleNeighbors.remove(it.first.toTriple())!!
+            if (node.supported && it.second.toTriple() in open && diagonalNode.passable && directions.slice(
+                    1..2
+                )
+                    .all { direction ->
+                        possibleNeighbors[Triple(
+                            direction.x,
+                            directions[0].y,
+                            direction.z
+                        )]!!.passable
+                    }
+            ) {
+                open += triple to diagonalNode
+            }
+        }
+
+        open += possibleNeighbors
+
+        return open.filter { it.value.canFit && (node.supported && (it.value.supported || it.key.second == 0) || it.key == Neighbor.D.toTriple()) }.values.toList()
     }
 
     override fun cost(from: McPathNode, to: McPathNode): Double {
-        // TODO: Come up with some common sense rules for this
-        return 1.0
+        // If you can walk instead falling, it's much better
+        val fallingCoeff = if ( to.supported ) 1 else 100
+        return 1.0 * fallingCoeff
     }
 }
 
-enum class PathNeighbor(val x: Int, val y: Int, val z: Int) {
-    UP(0, 1, 0),
-    DOWN(0, -1, 0),
-    EAST(1, 0, 0),
-    WEST(-1, 0, 0),
-    SOUTH(0, 0, 1),
-    NORTH(0, 0, -1),
-    NORTHEAST(1, 0, -1),
-    NORTHWEST(-1, 0, -1),
-    SOUTHEAST(1, 0, 1),
-    SOUTHWEST(-1, 0, 1),
-    UPEAST(1, 1, 0),
-    UPWEST(-1, 1, 0),
-    UPSOUTH(0, 1, 1),
-    UPNORTH(0, 1, -1),
-    UPNORTHEAST(1, 1, -1),
-    UPNORTHWEST(-1, 1, -1),
-    UPSOUTHEAST(1, 1, 1),
-    UPSOUTHWEST(-1, 1, 1),
-    DOWNEAST(1, -1, 0),
-    DOWNWEST(-1, -1, 0),
-    DOWNSOUTH(0, -1, 1),
-    DOWNNORTH(0, -1, -1),
-    DOWNNORTHEAST(1, -1, -1),
-    DOWNNORTHWEST(-1, -1, -1),
-    DOWNSOUTHEAST(1, -1, 1),
-    DOWNSOUTHWEST(-1, -1, 1),
+enum class Direction(val x: Int, val y: Int, val z: Int) {
+    U(0, 1, 0),
+    D(0, -1, 0),
+    E(1, 0, 0),
+    W(-1, 0, 0),
+    N(0, 0, -1),
+    S(0, 0, 1);
+
+    fun toTriple(): Triple<Int, Int, Int> {
+        return Triple(x, y, z)
+    }
+}
+
+enum class Neighbor(vararg val directions: Direction) {
+    U(Direction.U),
+    D(Direction.D),
+    E(Direction.E),
+    W(Direction.W),
+    N(Direction.N),
+    S(Direction.S),
+    NE(Direction.N, Direction.E),
+    NW(Direction.N, Direction.W),
+    SE(Direction.S, Direction.E),
+    SW(Direction.S, Direction.W),
+    UE(Direction.U, Direction.E),
+    UW(Direction.U, Direction.W),
+    US(Direction.U, Direction.S),
+    UN(Direction.U, Direction.N),
+    UNE(Direction.U, Direction.N, Direction.E),
+    UNW(Direction.U, Direction.N, Direction.W),
+    USE(Direction.U, Direction.S, Direction.E),
+    USW(Direction.U, Direction.S, Direction.W),
+    DE(Direction.D, Direction.E),
+    DW(Direction.D, Direction.W),
+    DN(Direction.D, Direction.N),
+    DS(Direction.D, Direction.S),
+    DNE(Direction.D, Direction.N, Direction.E),
+    DNW(Direction.D, Direction.N, Direction.W),
+    DSE(Direction.D, Direction.S, Direction.E),
+    DSW(Direction.D, Direction.S, Direction.W);
+
+    companion object {
+        val BASE_DIAGONALS = listOf(NE, NW, SE, SW)
+        val UP_DIAGONALS = listOf(UNE, UNW, USE, USW)
+        val DOWN_DIAGONALS = listOf(DNE, DNW, DSE, DSW)
+    }
+
+    val x: Int
+        get() = this.directions.sumBy { it.x }
+
+    val y: Int
+        get() = this.directions.sumBy { it.y }
+
+    val z: Int
+        get() = this.directions.sumBy { it.z }
+
+    fun toTriple(): Triple<Int, Int, Int> {
+        return Triple(x, y, z)
+    }
 }
