@@ -8,7 +8,8 @@ Thanks to Amit Patel and his unusual knack for explaining things clearly. My wor
 
 ## TODO
 
-- [ ] Implement [Incremental Phi\*](http://www.cs.cmu.edu/~maxim/files/inctheta_ijcai09.pdf)
+- [ ] Implement [Theta\*](https://arxiv.org/pdf/1401.3843) with a max distance
+  - Unless I can find a good way to work with [Incremental Phi\*](http://www.cs.cmu.edu/~maxim/files/inctheta_ijcai09.pdf) scalably across an entire world
 - [ ] Improve neighbor evaluation
   - [x] Fix corner cutting
   - [ ] No going straight up unless flag is set on some level that allows flying--require that block below target isn't passable
