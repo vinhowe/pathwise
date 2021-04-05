@@ -16,7 +16,9 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
         path.parents[start] = start
         path.costs[start] = 0.0
 
-        while (frontier.isNotEmpty()) {
+        var iterations = 0
+        while (frontier.isNotEmpty() && iterations < 100000) {
+            iterations++;
             val current = frontier.poll().first
             player.sendBlockChange(current.toBukkitLocation(world), Material.WHITE_CONCRETE.createBlockData())
 
