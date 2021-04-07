@@ -55,6 +55,10 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
             }
         }
 
+        if (path.end !in path.parents) {
+            return null
+        }
+
         player.sendBlockChange(start.toBukkitLocation(), Material.RED_CONCRETE.createBlockData())
         var parent: McPathNode? = path.end
         while (true) {
