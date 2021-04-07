@@ -118,8 +118,9 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
     }
 
     override fun cost(from: McPathNode, to: McPathNode): Double {
-        // If you can walk instead falling, it's much better
-        val fallingCoeff = if ( to.supported ) 1 else 100
+        // If you can walk instead falling, it's much better. In every scenario I could come up with, this cost is so
+        // high that a path with falling won't be picked unless there is no other path.
+        val fallingCoeff = if (to.supported) 1 else 100
         return 1.0 * fallingCoeff
     }
 }
