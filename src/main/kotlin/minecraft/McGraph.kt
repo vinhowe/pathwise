@@ -19,7 +19,6 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
         while (frontier.isNotEmpty() && iterations < 100000) {
             iterations++
             val current = frontier.poll().first
-            player.sendBlockChange(current.toBukkitLocation(), Material.WHITE_CONCRETE.createBlockData())
 
             if (current == end) {
                 break
