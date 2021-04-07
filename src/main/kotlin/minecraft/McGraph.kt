@@ -4,7 +4,10 @@ import Graph
 import org.bukkit.Material
 import org.bukkit.World
 import org.bukkit.entity.Player
+import org.bukkit.util.Vector
 import java.util.*
+import kotlin.math.abs
+import kotlin.math.sign
 
 class MinecraftGraph(private val world: World, private val player: Player) : Graph<McPathNode>() {
     fun search(start: McPathNode, end: McPathNode, heuristic: McHeuristic = McHeuristic.EUCLIDEAN): McPath? {
@@ -27,12 +30,17 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
             val neighbors = neighbors(current)
 
             neighbors.forEach {
-                val newCost = path.costs[current]!! + cost(current, it)
+                // TODO: Pull this logic out into updateVertex or similar
+                val parent = path.parents[current]!!
+                // Theta* algorithm
+                val targetNode = if (lineOfSight(parent, it)) parent else current
+                val newCost = path.costs[targetNode]!! + cost(targetNode, it)
+
                 if (it !in path.costs || newCost < path.costs[it]!!) {
                     path.costs[it] = newCost
                     val priority = newCost + heuristic(it, end)
                     frontier.offer(Pair(it, priority))
-                    path.parents[it] = current;
+                    path.parents[it] = targetNode
                 }
             }
         }
@@ -122,6 +130,133 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
         // high that a path with falling won't be picked unless there is no other path.
         val fallingCoeff = if (to.supported) 1 else 100
         return 1.0 * fallingCoeff
+    }
+
+    private fun lineOfSight(from: McPathNode, to: McPathNode): Boolean {
+        if (from == to) {
+            return true
+        }
+        // Rule of thumb: Is the graph disconnected? The fact that there's line of sight from one side of a chasm to
+        // another doesn't mean that there is a reasonable path between them
+        //
+        // Rules (short circuit if any one scanned node doesn't match this):
+        // - all blocks in direct line meet criteria:
+        //   - climbable OR supported
+        //   - headroom (block above)
+
+        val difference = to - from
+        val isStraightDown = sign(difference.y) == -1.0 && difference.x == 0.0 && difference.z == 0.0
+        if (!isStraightDown) {
+            val supportedLine = linePoints(from.x, from.y - 1, from.z, to.x, to.y - 1, to.z)
+            val notSupported =
+                supportedLine.map { McPathNode.fromBukkitVector(it, world) }
+                    .any { it.passable && !it.climbable || !it.safe }
+            // Debugging
+//            supportedLine.map { it.toLocation(world).block }.filter { !it.type.isAir }
+//                .forEach { it.type = Material.RED_CONCRETE }
+            if (notSupported) {
+                return false
+            }
+        }
+
+        val bottomHitResult = world.rayTraceBlocks(
+            from.toBukkitLocation().add(0.49, 0.5, 0.49),
+            difference.clone().normalize(),
+            difference.length()
+        )
+        if (bottomHitResult != null) {
+            // Useful for debugging hits
+//            bottomHitResult.hitBlock!!.type = Material.GREEN_CONCRETE
+            return false
+        }
+
+        val topHitResult = world.rayTraceBlocks(
+            from.toBukkitLocation().add(0.5, 1.5, 0.5),
+            difference.clone().normalize(),
+            difference.length()
+        )
+        if (topHitResult != null) {
+//            topHitResult.hitBlock!!.type = Material.BLUE_CONCRETE
+            return false
+        }
+
+        return true
+    }
+
+    // https://www.geeksforgeeks.org/bresenhams-algorithm-for-3-d-line-drawing/
+    fun linePoints(x0: Int, y0: Int, z0: Int, x1: Int, y1: Int, z1: Int): List<Vector> {
+        // TODO: Make this more specialized to lineOfSight so that it can short circuit when finding a block that
+        //  doesn't satisfy the rules
+
+        val dx = abs(x1 - x0)
+        val dy = abs(y1 - y0)
+        val dz = abs(z1 - z0)
+        var x = x0
+        var y = y0
+        var z = z0
+        val sx = sign((x1 - x0).toDouble()).toInt()
+        val sy = sign((y1 - y0).toDouble()).toInt()
+        val sz = sign((z1 - z0).toDouble()).toInt()
+
+        val points = mutableListOf<Vector>()
+        points += Vector(x, y, z)
+
+        if (dx >= dy && dx >= dz) {
+            // X axis drives
+            var p1 = 2.0 * dy - dx
+            var p2 = 2.0 * dz - dx
+            while (x != x1) {
+                x += sx
+                if (p1 >= 0.0) {
+                    y += sy
+                    p1 -= 2.0 * dx
+                }
+                if (p2 >= 0.0) {
+                    z += sz
+                    p2 -= 2.0 * dx
+                }
+                p1 += 2 * dy
+                p2 += 2 * dz
+                points += Vector(x, y, z)
+            }
+        } else if (dy >= dx && dy >= dz) {
+            // Y axis drives
+            var p1 = 2.0 * dx - dy
+            var p2 = 2.0 * dz - dy
+            while (y != y1) {
+                y += sy
+                if (p1 >= 0) {
+                    x += sx
+                    p1 -= 2 * dy
+                }
+                if (p2 >= 0) {
+                    z += sz
+                    p2 -= 2 * dy
+                }
+                p1 += 2 * dx
+                p2 += 2 * dz
+                points += Vector(x, y, z)
+            }
+        } else {
+            // Z axis drives
+            var p1 = 2.0 * dy - dz
+            var p2 = 2.0 * dx - dz
+            while (z != z1) {
+                z += sz
+                if (p1 >= 0.0) {
+                    y += sy
+                    p1 -= 2.0 * dz
+                }
+                if (p2 >= 0.0) {
+                    x += sx
+                    p2 -= 2.0 * dz
+                }
+                p1 += 2.0 * dy
+                p2 += 2.0 * dx
+                points += Vector(x, y, z)
+            }
+        }
+        return points
     }
 }
 

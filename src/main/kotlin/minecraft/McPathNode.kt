@@ -42,7 +42,7 @@ data class McPathNode(val world: World, val x: Int, val y: Int, val z: Int) : Pa
     val passable: Boolean
         get() {
             if (_passable == null) {
-                _passable = toBukkitLocation().block.isPassable
+                _passable = toBukkitLocation().block.isPassable || climbable
             }
             return _passable!!
         }
@@ -74,9 +74,9 @@ data class McPathNode(val world: World, val x: Int, val y: Int, val z: Int) : Pa
     val canFit: Boolean
         get() {
             if (_canFit == null) {
-                val passableAndSafe = safe && (passable || climbable)
+                val passableAndSafe = safe && passable
                 val up = plus(Neighbor.U)
-                _canFit = passableAndSafe && (up.passable || up.climbable)
+                _canFit = passableAndSafe && up.passable
             }
             return _canFit!!
         }
