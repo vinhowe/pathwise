@@ -2,11 +2,11 @@ package minecraft
 
 import Path
 
-class McPath(parents: MutableMap<McPathNode, McPathNode>, costs: MutableMap<McPathNode, Double>) :
+class McPath(parents: MutableMap<McPathNode, McPathNode>, costs: MutableMap<McPathNode, Double>, var end: McPathNode) :
     Path<McPathNode>(parents, costs) {
     companion object {
-        fun empty(): McPath {
-            return McPath(mutableMapOf(), mutableMapOf())
+        fun empty(end: McPathNode): McPath {
+            return McPath(mutableMapOf(), mutableMapOf(), end)
         }
     }
 }

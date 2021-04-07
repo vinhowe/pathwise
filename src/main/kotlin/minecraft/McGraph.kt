@@ -10,9 +10,14 @@ import kotlin.math.abs
 import kotlin.math.sign
 
 class MinecraftGraph(private val world: World, private val player: Player) : Graph<McPathNode>() {
-    fun search(start: McPathNode, end: McPathNode, heuristic: McHeuristic = McHeuristic.EUCLIDEAN): McPath? {
+    fun search(
+        start: McPathNode,
+        end: McPathNode,
+        maxDistance: Int,
+        heuristic: McHeuristic = McHeuristic.EUCLIDEAN
+    ): McPath? {
         val frontier: PriorityQueue<Pair<McPathNode, Double>> = PriorityQueue(compareBy { it.second })
-        val path = McPath.empty()
+        val path = McPath.empty(end)
         frontier.offer(Pair(start, 0.0))
 
         path.parents[start] = start
@@ -22,6 +27,11 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
         while (frontier.isNotEmpty() && iterations < 100000) {
             iterations++
             val current = frontier.poll().first
+
+            if (current.distanceTo(start) >= maxDistance) {
+                path.end = current
+                break
+            }
 
             if (current == end) {
                 break
@@ -46,7 +56,7 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
         }
 
         player.sendBlockChange(start.toBukkitLocation(), Material.RED_CONCRETE.createBlockData())
-        var parent: McPathNode? = end
+        var parent: McPathNode? = path.end
         while (true) {
             player.sendBlockChange(parent!!.toBukkitLocation(), Material.RED_CONCRETE.createBlockData())
             parent = path.parents[parent]

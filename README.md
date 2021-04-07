@@ -13,6 +13,7 @@ Thanks to Amit Patel and his unusual knack for explaining things clearly. My wor
     - [x] Implement [Bresenham's Algorithm 3D][https://www.geeksforgeeks.org/bresenhams-algorithm-for-3-d-line-drawing/] to test
       if blocks under line of sight test are solid
     - [ ] Consider doubling up ray traces horizontally and just passing if at least both traces on one side match
+  - [x] Add distance limit option
 - [ ] Improve neighbor evaluation
   - [x] Fix corner cutting
   - [ ] No going straight up unless flag is set on some level that allows flying--require that block below target isn't passable
