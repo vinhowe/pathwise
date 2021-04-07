@@ -10,7 +10,7 @@ Thanks to Amit Patel and his unusual knack for explaining things clearly. My wor
 
 - [x] Implement [Theta\*](https://arxiv.org/pdf/1401.3843)
   - [x] Line of sight algorithm
-    - [x] Implement [Bresenham's Algorithm 3D][https://www.geeksforgeeks.org/bresenhams-algorithm-for-3-d-line-drawing/] to test
+    - [x] Implement [Bresenham's Algorithm 3D](https://www.geeksforgeeks.org/bresenhams-algorithm-for-3-d-line-drawing/) to test
       if blocks under line of sight test are solid
     - [ ] Consider doubling up ray traces horizontally and just passing if at least both traces on one side match
   - [x] Add distance limit option
