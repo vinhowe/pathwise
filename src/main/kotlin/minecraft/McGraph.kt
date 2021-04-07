@@ -17,7 +17,7 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
 
         var iterations = 0
         while (frontier.isNotEmpty() && iterations < 100000) {
-            iterations++;
+            iterations++
             val current = frontier.poll().first
             player.sendBlockChange(current.toBukkitLocation(), Material.WHITE_CONCRETE.createBlockData())
 
@@ -25,13 +25,13 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
                 break
             }
 
-            val neighbors = neighbors(current);
+            val neighbors = neighbors(current)
 
             neighbors.forEach {
                 val newCost = path.costs[current]!! + cost(current, it)
                 if (it !in path.costs || newCost < path.costs[it]!!) {
-                    path.costs[it] = newCost;
-                    val priority = newCost + heuristic(it, end);
+                    path.costs[it] = newCost
+                    val priority = newCost + heuristic(it, end)
                     frontier.offer(Pair(it, priority))
                     path.parents[it] = current;
                 }
@@ -41,7 +41,7 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
         var parent: McPathNode? = end
         while (true) {
             player.sendBlockChange(parent!!.toBukkitLocation(), Material.RED_CONCRETE.createBlockData())
-            parent = path.parents[parent];
+            parent = path.parents[parent]
 
             if (parent == null || parent == start) {
                 break

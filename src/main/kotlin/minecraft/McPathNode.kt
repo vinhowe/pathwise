@@ -81,7 +81,8 @@ data class McPathNode(val world: World, val x: Int, val y: Int, val z: Int) : Pa
     val supported: Boolean
         get() {
             if (_supported == null) {
-                _supported = climbable || (!plus(Neighbor.D).passable && plus(Neighbor.D).safe);
+                val down = plus(Neighbor.D)
+                _supported = climbable || down.climbable || (!down.passable && down.safe)
             }
             return _supported!!
         }
@@ -94,13 +95,21 @@ data class McPathNode(val world: World, val x: Int, val y: Int, val z: Int) : Pa
         return McPathNode(world, x + inc.x, y + inc.y, z + inc.z)
     }
 
+    operator fun plus(inc: McPathNode): Vector {
+        return Vector(x + inc.x, y + inc.y, z + inc.z)
+    }
+
+    operator fun minus(dec: McPathNode): Vector {
+        return Vector(x - dec.x, y - dec.y, z - dec.z)
+    }
+
     fun distanceTo(other: McPathNode): Double {
         val dx = other.x - x.toDouble()
         val dy = other.y - y.toDouble()
         val dz = other.z - z.toDouble()
         return sqrt(
             dx.pow(2) + dy.pow(2) + dz.pow(2)
-        );
+        )
     }
 
     fun toBukkitVector(): Vector {
