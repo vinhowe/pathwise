@@ -18,6 +18,10 @@ data class McPathNode(val world: World, val x: Int, val y: Int, val z: Int) : Pa
         fun fromBukkitLocation(location: Location): McPathNode {
             return McPathNode(location.world!!, location.blockX, location.blockY, location.blockZ)
         }
+
+        fun fromBukkitVector(vector: Vector, world: World): McPathNode {
+            return McPathNode(world, vector.blockX, vector.blockY, vector.blockZ)
+        }
     }
 
     private var _safe: Boolean? = null

@@ -59,11 +59,18 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
 
         val open = mutableMapOf<Triple<Int, Int, Int>, McPathNode>()
 
+        val headHorizontalNeighbors = Neighbor.HORIZONTALS.map {
+            Pair(it.x, it.z) to node + (it + Neighbor.U)
+        }.toMap()
+
         // Limit diagonal movement
         Neighbor.BASE_DIAGONALS.forEach { it ->
             val triple = it.toTriple()
             val diagonalNode = possibleNeighbors.remove(triple)!!
-            if (node.supported && diagonalNode.passable && it.directions.all { possibleNeighbors[it.toTriple()]!!.passable }) {
+            if (node.supported && diagonalNode.passable && it.directions.all {
+                    possibleNeighbors[it.toTriple()]!!.passable
+                            && headHorizontalNeighbors[Pair(it.x, it.z)]!!.passable
+                }) {
                 open += triple to diagonalNode
             }
         }
@@ -71,13 +78,15 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
         Neighbor.UP_DIAGONALS.forEach {
             val triple = it.toTriple()
             val diagonalNode = possibleNeighbors.remove(triple)!!
-            if (node.supported && diagonalNode.passable && it.directions.slice(2..2)
+            if (node.supported && diagonalNode.passable && it.directions.slice(1..2)
                     .all { direction ->
                         possibleNeighbors[Triple(
                             direction.x,
                             it.directions[0].y,
                             direction.z
                         )]!!.passable
+                                // Check that nothing is obstructing player's head
+                                && headHorizontalNeighbors[Pair(direction.x, direction.z)]!!.passable
                     }
             ) {
                 open += triple to diagonalNode
@@ -160,6 +169,7 @@ enum class Neighbor(vararg val directions: Direction) {
         val BASE_DIAGONALS = listOf(NE, NW, SE, SW)
         val UP_DIAGONALS = listOf(UNE, UNW, USE, USW)
         val DOWN_DIAGONALS = listOf(DNE, DNW, DSE, DSW)
+        val HORIZONTALS = listOf(N, E, S, W)
     }
 
     val x: Int
@@ -170,6 +180,14 @@ enum class Neighbor(vararg val directions: Direction) {
 
     val z: Int
         get() = this.directions.sumBy { it.z }
+
+    operator fun plus(inc: Triple<Int, Int, Int>): Triple<Int, Int, Int> {
+        return Triple(x + inc.first, y + inc.second, z + inc.third)
+    }
+
+    operator fun plus(inc: Neighbor): Triple<Int, Int, Int> {
+        return plus(inc.toTriple())
+    }
 
     fun toTriple(): Triple<Int, Int, Int> {
         return Triple(x, y, z)
