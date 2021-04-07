@@ -12,8 +12,6 @@ Thanks to Amit Patel and his unusual knack for explaining things clearly. My wor
   - [x] Line of sight algorithm
     - [x] Implement [Bresenham's Algorithm 3D][https://www.geeksforgeeks.org/bresenhams-algorithm-for-3-d-line-drawing/] to test
       if blocks under line of sight test are solid
-    - [ ] Move back rayTraceBlocks vectors relative to direction facing when angled upward so they don't get hits looking up 45deg or less
-      - [ ] Test to make sure that this doesn't lead to any false positive LOS in other scenarios
     - [ ] Consider doubling up ray traces horizontally and just passing if at least both traces on one side match
 - [ ] Improve neighbor evaluation
   - [x] Fix corner cutting

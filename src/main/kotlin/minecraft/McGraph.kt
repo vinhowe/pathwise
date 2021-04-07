@@ -161,7 +161,7 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
         }
 
         val bottomHitResult = world.rayTraceBlocks(
-            from.toBukkitLocation().add(0.49, 0.5, 0.49),
+            from.toBukkitLocation().add(0.5, 0.51, 0.5),
             difference.clone().normalize(),
             difference.length()
         )
@@ -172,7 +172,7 @@ class MinecraftGraph(private val world: World, private val player: Player) : Gra
         }
 
         val topHitResult = world.rayTraceBlocks(
-            from.toBukkitLocation().add(0.5, 1.5, 0.5),
+            from.toBukkitLocation().add(0.5, 1.51, 0.5),
             difference.clone().normalize(),
             difference.length()
         )
