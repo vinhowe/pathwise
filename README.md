@@ -12,7 +12,8 @@ Thanks to Amit Patel and his unusual knack for explaining things clearly. My wor
   - [x] Line of sight algorithm
     - [x] Implement [Bresenham's Algorithm 3D][https://www.geeksforgeeks.org/bresenhams-algorithm-for-3-d-line-drawing/] to test
       if blocks under line of sight test are solid
-    - [ ] Figure out why line of sight works down a 45deg diagonal but not up
+    - [ ] Move back rayTraceBlocks vectors relative to direction facing when angled upward so they don't get hits looking up 45deg or less
+      - [ ] Test to make sure that this doesn't lead to any false positive LOS in other scenarios
 - [ ] Improve neighbor evaluation
   - [x] Fix corner cutting
   - [ ] No going straight up unless flag is set on some level that allows flying--require that block below target isn't passable
